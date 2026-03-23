@@ -1,6 +1,4 @@
-# Unified EEG + Potentiostat Device App
-
-This package is the cleaned, editable browser replacement for the original EEG visualizer and potentiostat web recorder workflows.
+# NeuroSync
 
 ## What it replaces
 

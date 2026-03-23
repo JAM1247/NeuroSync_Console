@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EEG + Potentiostat Unified Device App</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>Unified EEG + Potentiostat Device App</h1>
+      <p class="subhead">Single browser-based replacement for the original visualizers and web recorder workflows.</p>
+    </div>
+    <div class="status-pills">
+      <span id="browserSupport" class="pill muted">Checking Web Serial…</span>
+      <span id="activeModePill" class="pill primary">Mode: EEG</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <section class="panel">
+        <h2>Mode</h2>
+        <div class="row gap wrap">
+          <label><input type="radio" name="mode" value="eeg" checked /> EEG</label>
+          <label><input type="radio" name="mode" value="potentiostat" /> Potentiostat</label>
+        </div>
+      </section>
+
+      <section id="eegControls" class="panel">
+        <h2>EEG Controls</h2>
+        <div class="grid two-col">
+          <label>Port baud<input id="eegBaud" type="number" value="115200" /></label>
+          <label>Channels<input id="eegChannels" type="number" value="10" min="1" max="32" /></label>
+          <label>Sampling rate (Hz)<input id="eegFs" type="number" value="250" min="1" /></label>
+          <label>Window (s)<input id="eegWindow" type="number" value="5" min="1" step="0.5" /></label>
+          <label>Lag (s)<input id="eegLag" type="number" value="0.5" min="0" step="0.1" /></label>
+          <label>Focus channel<input id="eegFocus" type="number" value="1" min="1" max="10" /></label>
+          <label>Gain<input id="eegGain" type="number" value="1" step="0.1" min="0.1" /></label>
+          <label>Smoothing window<input id="eegSmooth" type="number" value="1" min="1" step="1" /></label>
+        </div>
+        <div class="row gap wrap checkbox-row">
+          <label><input id="eegNotch" type="checkbox" /> 60 Hz notch</label>
+          <label><input id="eegBandpass" type="checkbox" /> 0.5–40 Hz bandpass</label>
+          <label><input id="eegAutoScale" type="checkbox" /> auto-scale</label>
+          <label><input id="eegShowBands" type="checkbox" /> show bands</label>
+          <label><input id="eegTimestampFirst" type="checkbox" checked /> first CSV field is timestamp</label>
+        </div>
+        <div class="row gap wrap">
+          <button id="connectEeg">Connect EEG</button>
+          <button id="disconnectEeg" class="secondary">Disconnect</button>
+          <button id="togglePause" class="secondary">Pause</button>
+        </div>
+        <div class="row gap wrap">
+          <button data-eeg-cmd="csv_on">csv_on</button>
+          <button data-eeg-cmd="csv_off">csv_off</button>
+          <button data-eeg-cmd="pi_on">pi_on</button>
+          <button data-eeg-cmd="pi_off">pi_off</button>
+        </div>
+        <div class="row gap wrap">
+          <button data-save-seconds="5">Save 5s CSV</button>
+          <button data-save-seconds="30">Save 30s CSV</button>
+          <button data-save-seconds="60">Save 60s CSV</button>
+          <button id="saveEegFull" class="secondary">Save full EEG CSV</button>
+          <button id="saveScreenshot" class="secondary">Screenshot</button>
+        </div>
+        <div class="status-line" id="eegStatus">EEG disconnected.</div>
+      </section>
+
+      <section id="potControls" class="panel hidden">
+        <h2>Potentiostat Controls</h2>
+        <div class="grid two-col">
+          <label>Read baud<input id="potReadBaud" type="number" value="115200" /></label>
+          <label>Control baud<input id="potControlBaud" type="number" value="9600" /></label>
+          <label>Duration (s)<input id="potDuration" type="number" value="5" min="1" /></label>
+          <label>Sample rate<input id="potSampleRate" type="number" value="5000" min="1" /></label>
+          <label>PWM value<input id="potPwm" type="number" value="300" min="0" max="2500" /></label>
+          <label>PWM sample rate<input id="potPwmSampleRate" type="number" value="5000" min="1" /></label>
+        </div>
+        <div class="row gap wrap">
+          <button id="connectPotRead">Connect Read Port</button>
+          <button id="connectPotControl">Connect Control Port</button>
+          <button id="disconnectPot" class="secondary">Disconnect Ports</button>
+        </div>
+        <div class="row gap wrap">
+          <button id="potStart">Start Recording</button>
+          <button id="potStop" class="secondary">Stop Recording</button>
+          <button id="potSave" class="secondary">Save CSV</button>
+        </div>
+        <div class="row gap wrap">
+          <button id="potSetPwm">Set PWM</button>
+          <button id="potSetSampleRate">Set SampleRate</button>
+          <button id="potLedOn">LED ON</button>
+          <button id="potLedOff">LED OFF</button>
+        </div>
+        <div class="status-stack">
+          <div id="potReadStatus">Read port disconnected.</div>
+          <div id="potControlStatus">Control port disconnected.</div>
+          <div id="potRecordStatus">Ready.</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Manual Serial</h2>
+        <label>Send command to active control channel<input id="manualCommand" type="text" placeholder="Type a command like readrate 5000" /></label>
+        <div class="row gap wrap">
+          <button id="sendManual">Send</button>
+          <button id="clearLog" class="secondary">Clear Log</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Keyboard</h2>
+        <p class="tiny">Space pause/resume, N notch, F bandpass, G/H gain, [ and ] smoothing, C focus channel, 1/2/3 save EEG CSV, S screenshot.</p>
+      </section>
+    </aside>
+
+    <section class="mainpanels">
+      <section class="panel plot-panel">
+        <div class="plot-header">
+          <h2 id="timePlotTitle">EEG Time Domain</h2>
+          <span id="plotMeta" class="muted-text">Waiting for data…</span>
+        </div>
+        <canvas id="timeCanvas" width="1400" height="760"></canvas>
+      </section>
+
+      <section class="panel plot-panel">
+        <div class="plot-header">
+          <h2 id="fftTitle">Spectrum / Secondary Plot</h2>
+          <span id="fftMeta" class="muted-text">—</span>
+        </div>
+        <canvas id="fftCanvas" width="1400" height="360"></canvas>
+      </section>
+
+      <section class="panel">
+        <h2>Log</h2>
+        <pre id="appLog" class="log"></pre>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

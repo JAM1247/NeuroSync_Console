@@ -28,12 +28,6 @@
 - `write 13 0`
 - CSV export
 
-## What still stays on the hardware
-This is a frontend replacement. It does not replace the Teensy firmware files:
-- `main.cpp`
-- `potentiostat.ino`
-
-Those still must remain on the board.
 
 ## Run locally
 
@@ -42,9 +36,3 @@ cd fixed-app
 python -m http.server 8000
 ```
 
-Then open the local URL in Chrome or Edge.
-
-## Notes
-- Use HTTPS or localhost for Web Serial.
-- EEG defaults are set to 250 Hz to match the uploaded firmware.
-- The EEG parser assumes the first field is a timestamp by default, because that is how the uploaded Teensy firmware prints rows.
